@@ -1,0 +1,50 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1b81f431..c518ecc4 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -8,6 +8,10 @@ project ( YUV C CXX )	# "C" is required even for C++ projects
+ cmake_minimum_required( VERSION 2.8.12 )
+ option( UNIT_TEST "Built unit tests" OFF )
+ 
++find_package(libjpeg-turbo REQUIRED)
++add_definitions( -DHAVE_JPEG )
++get_target_property(JPEG_INC libjpeg-turbo::jpeg INTERFACE_INCLUDE_DIRECTORIES)
++
+ set ( ly_base_dir	${PROJECT_SOURCE_DIR} )
+ set ( ly_src_dir	${ly_base_dir}/source )
+ set ( ly_inc_dir	${ly_base_dir}/include )
+@@ -68,7 +72,7 @@ set ( ly_common_source_files
+ file ( GLOB_RECURSE	ly_unittest_sources ${ly_tst_dir}/*.cc )
+ list ( SORT			ly_unittest_sources )
+ 
+-include_directories( BEFORE ${ly_inc_dir} )
++include_directories( BEFORE ${ly_inc_dir} ${JPEG_INC})
+ 
+ if(MSVC)
+   add_definitions ( -D_CRT_SECURE_NO_WARNINGS )
+@@ -79,7 +83,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+ 
+ # Build the set of objects that do not need to be compiled with flags to enable
+ # particular architecture features.
+-add_library( ${ly_lib_name}_common_objects OBJECT ${ly_common_source_files} )
++
++add_library( ${ly_lib_name}_common_objects OBJECT ${ly_common_source_files})
+ set(ly_lib_parts $<TARGET_OBJECTS:${ly_lib_name}_common_objects>)
+ 
+ string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" SYSPROC)
+@@ -196,12 +201,9 @@ target_link_libraries	( yuvconvert ${ly_lib_static} )
+ add_executable      ( yuvconstants ${ly_base_dir}/util/yuvconstants.c )
+ target_link_libraries  ( yuvconstants ${ly_lib_static} )
+ 
+-find_package ( JPEG )
+-if (JPEG_FOUND)
+-  include_directories( ${JPEG_INCLUDE_DIR} )
+-  target_link_libraries( ${ly_lib_shared} ${JPEG_LIBRARY} )
+-  add_definitions( -DHAVE_JPEG )
+-endif()
++
++target_link_libraries( ${ly_lib_shared} PUBLIC libjpeg-turbo::jpeg)
++
+ 
+ if(UNIT_TEST)
+   find_library(GTEST_LIBRARY gtest)
