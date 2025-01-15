@@ -16,6 +16,8 @@ build:
   number: 1000
 
 requirements:
+  run_exports:
+    - ${{ name }}
   build:
     - ${{ compiler('cxx') }}
     - cmake
